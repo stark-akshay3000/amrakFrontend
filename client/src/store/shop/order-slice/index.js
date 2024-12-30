@@ -8,6 +8,25 @@ const initialState = {
   orderList: [],
   orderDetails: null,
 };
+export const createCodOrder = createAsyncThunk(
+  "/order/createCodOrder",
+  async (orderData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/shop/order/create-cod",
+        orderData
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response && error.response.data
+          ? error.response.data.message
+          : "Failed to create COD order."
+      );
+    }
+  }
+);
+
 
 export const createNewOrder = createAsyncThunk(
   "/order/createNewOrder",
@@ -41,7 +60,7 @@ export const getAllOrdersByUserId = createAsyncThunk(
   "/order/getAllOrdersByUserId",
   async (userId) => {
     const response = await axios.get(
-      `http://localhost:5000/api/shop/order/list/${userId}`
+      `https://amrakbackend-1aov.onrender.com/api/shop/order/list/${userId}`
     );
 
     return response.data;
@@ -52,7 +71,7 @@ export const getOrderDetails = createAsyncThunk(
   "/order/getOrderDetails",
   async (id) => {
     const response = await axios.get(
-      `http://localhost:5000/api/shop/order/details/${id}`
+      `https://amrakbackend-1aov.onrender.com/api/shop/order/details/${id}`
     );
 
     return response.data;
@@ -85,6 +104,22 @@ const shoppingOrderSlice = createSlice({
         state.isLoading = false;
         state.approvalURL = null;
         state.orderId = null;
+      })
+      .addCase(createCodOrder.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createCodOrder.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.orderId = action.payload.orderId;
+        sessionStorage.setItem(
+          "currentOrderId",
+          JSON.stringify(action.payload.orderId)
+        );
+      })
+      .addCase(createCodOrder.rejected, (state, action) => {
+        state.isLoading = false;
+        state.orderId = null;
+        console.error(action.payload); // Log the error for debugging
       })
       .addCase(getAllOrdersByUserId.pending, (state) => {
         state.isLoading = true;
